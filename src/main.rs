@@ -49,6 +49,18 @@ fn init_board() -> Board{
     board
 }
 
+fn create_board(){
+    const x_offset: f32 = 100.0;
+    const y_offset: f32 = 100.0;
+    let is_white: bool = true;
+
+    for x in 0..BOARD_SIZE{
+        for y in 0..BOARD_SIZE{
+
+        }
+    }
+}
+
 #[macroquad::main("Jogo 2D Simples")]
 async fn main() {
     let board: Board = init_board();
