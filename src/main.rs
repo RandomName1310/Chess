@@ -25,6 +25,8 @@ struct Piece {
 type Board = [[Option<Piece>; BOARD_SIZE]; BOARD_SIZE]; // type makes something equivalent
 // example: Board now is equal to [[Option<Piece>; BOARD_SIZE]; BOARD_SIZE]. Makes it simpler
 
+
+// set pieces
 fn init_board() -> Board{
     let mut board: Board = [[None; BOARD_SIZE]; BOARD_SIZE];
 
@@ -49,14 +51,25 @@ fn init_board() -> Board{
     board
 }
 
-fn create_board(){
+// create board tiles
+fn create_board(board: &Board){
     const x_offset: f32 = 100.0;
     const y_offset: f32 = 100.0;
     let is_white: bool = true;
 
     for x in 0..BOARD_SIZE{
         for y in 0..BOARD_SIZE{
+            let piece: Option<Piece> = board[y][x];
+            let mut letter: if let Some(piece) = piece {
+                match piece.piece_type{
+                    PieceType::Pawn => letter = String::from("P");
+                    PieceType::Rook => letter = String::from("R");
+                    PieceType::Knight => letter = String::from("N");
+                    _ => letter = String::from("ERR");
+                }
+            }
 
+            draw_text(&format!("{}", letter), 20.0 + x_offset * x, y_offset * y, 20.0, RED);
         }
     }
 }
