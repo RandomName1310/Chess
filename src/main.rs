@@ -23,8 +23,8 @@ enum Color {
 struct Piece {
     piece_type: PieceType,
     color: Color,
-    moves_move: Vec<Vec<int>>,
-    moves_capture: Vec<Vec<int>>
+    moves_move: &'static[Offset],
+    moves_capture: &'static[Offset]
 }
 
 type Board = [[Option<Piece>; BOARD_SIZE]; BOARD_SIZE]; // type makes something equivalent
@@ -65,11 +65,14 @@ fn create_board(board: &Board){
     for x in 0..BOARD_SIZE{
         for y in 0..BOARD_SIZE{
             let piece: Option<Piece> = board[y][x];
-            let mut letter: if let Some(piece) = piece {
+            let letter: if let Some(piece) = piece {
                 match piece.piece_type{
                     PieceType::Pawn => letter = String::from("P");
                     PieceType::Rook => letter = String::from("R");
                     PieceType::Knight => letter = String::from("N");
+                    PieceType::Bishop => letter = String::from("B");
+                    PieceType::King => letter = String::from("K");
+                    PieceType::Queen => letter = String::from("Q");
                     _ => letter = String::from("ERR");
                 }
             }
@@ -79,8 +82,13 @@ fn create_board(board: &Board){
     }
 }
 
+fn move_piece(board: &mut Board, coord: (i8, i8)){
+
+}
+
 #[macroquad::main("Jogo 2D Simples")]
 async fn main() {
-    let board: Board = init_board();
-    create_board(board);
+    let mut board: Board = init_board();
+    create_board(&board);
+    move_piece(&mut board, (1, 2));
 }
