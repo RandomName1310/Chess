@@ -1,3 +1,6 @@
+mod moves;
+use moves::*;
+
 const BOARD_SIZE: usize = 8;
 
 #[derive(Copy, Clone)]
@@ -20,6 +23,8 @@ enum Color {
 struct Piece {
     piece_type: PieceType,
     color: Color,
+    moves_move: Vec<Vec<int>>,
+    moves_capture: Vec<Vec<int>>
 }
 
 type Board = [[Option<Piece>; BOARD_SIZE]; BOARD_SIZE]; // type makes something equivalent
@@ -53,8 +58,8 @@ fn init_board() -> Board{
 
 // create board tiles
 fn create_board(board: &Board){
-    const x_offset: f32 = 100.0;
-    const y_offset: f32 = 100.0;
+    const X_OFFSET: f32 = 100.0;
+    const Y_OFFSET: f32 = 100.0;
     let is_white: bool = true;
 
     for x in 0..BOARD_SIZE{
@@ -69,7 +74,7 @@ fn create_board(board: &Board){
                 }
             }
 
-            draw_text(&format!("{}", letter), 20.0 + x_offset * x, y_offset * y, 20.0, RED);
+            draw_text(&format!("{}", letter), 20.0 + X_OFFSET * x, Y_OFFSET * y, 20.0, RED);
         }
     }
 }
@@ -77,4 +82,5 @@ fn create_board(board: &Board){
 #[macroquad::main("Jogo 2D Simples")]
 async fn main() {
     let board: Board = init_board();
+    create_board(board);
 }
