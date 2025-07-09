@@ -10,7 +10,7 @@ pub const PAWN_MOVES: &[Offset] = &[Offset { dx: 0, dy: 1 }];
 pub const PAWN_CAPTURES: &[Offset] = &[Offset { dx: 1, dy: 1 }, Offset { dx: -1, dy: 1 }];
 
 // bishop moves
-v const BISHOP_MOVES: &[Offset] = &[
+pub const BISHOP_MOVES: &[Offset] = &[
     Offset { dx: 1, dy: 1 },
     Offset { dx: 1, dy: -1 },
     Offset { dx: -1, dy: 1 },
