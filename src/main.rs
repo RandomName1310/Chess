@@ -37,11 +37,20 @@ struct Piece {
 }
 
 // draw the board with the pieces on screen
-fn draw_board(board: &mut Board) {
+fn draw_board(board: &mut Board){
+    let mut is_white: bool = false;
+
     for x in 0..BOARD_SIZE {
+        is_white = !is_white;
         for y in 0..BOARD_SIZE {
+            const SQUARE_SIZE: f32 = 100.0;
             let piece: &str = board[y][x];
-            draw_text(&format!("{}", piece), 20.0 + X_OFFSET * x as f32, 20.0 + Y_OFFSET * y as f32, 20.0, RED);
+
+            if is_white{draw_rectangle(X_OFFSET * x as f32, Y_OFFSET * y as f32, SQUARE_SIZE, SQUARE_SIZE, WHITE)} 
+            else{draw_rectangle(X_OFFSET * x as f32,Y_OFFSET * y as f32, SQUARE_SIZE, SQUARE_SIZE, BLACK)} 
+            draw_text(&format!("{}", piece), 40.0 + X_OFFSET * x as f32, 60.0 + Y_OFFSET * y as f32, 50.0, RED);
+
+            is_white = !is_white;
         }
     }
 }
@@ -55,7 +64,7 @@ async fn main(){
     let mut board: Board = create_board();
 
     loop {
-        clear_background(WHITE);
+        clear_background(GRAY);
         draw_board(&mut board);
         move_piece(&mut board, (1, 2));
         next_frame().await;
