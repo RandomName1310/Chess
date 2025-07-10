@@ -7,8 +7,7 @@ use board::*;
 use macroquad::prelude::*;
 
 const BOARD_SIZE: usize = 8;
-const X_OFFSET: f32 = 100.0;
-const Y_OFFSET: f32 = 100.0;
+const SQUARE_SIZE: f32 = 80.0;
 
 type Board = [[&'static str; 8]; 8];
 
@@ -40,15 +39,22 @@ struct Piece {
 fn draw_board(board: &mut Board){
     let mut is_white: bool = false;
 
+    // calculate position based on screen size
+    let board_px = BOARD_SIZE as f32 * SQUARE_SIZE;
+    let x_offset = (screen_width() - board_px) / 2.0;
+    let y_offset = (screen_height() - board_px) / 2.0;
+
     for x in 0..BOARD_SIZE {
         is_white = !is_white;
         for y in 0..BOARD_SIZE {
-            const SQUARE_SIZE: f32 = 100.0;
             let piece: &str = board[y][x];
 
-            if is_white{draw_rectangle(X_OFFSET * x as f32, Y_OFFSET * y as f32, SQUARE_SIZE, SQUARE_SIZE, WHITE)} 
-            else{draw_rectangle(X_OFFSET * x as f32,Y_OFFSET * y as f32, SQUARE_SIZE, SQUARE_SIZE, BLACK)} 
-            draw_text(&format!("{}", piece), 40.0 + X_OFFSET * x as f32, 60.0 + Y_OFFSET * y as f32, 50.0, RED);
+            let pos_x = x_offset + x as f32 * SQUARE_SIZE;
+            let pos_y = y_offset + y as f32 * SQUARE_SIZE;
+
+            if is_white{draw_rectangle(pos_x, pos_y, SQUARE_SIZE, SQUARE_SIZE, WHITE)} 
+            else{draw_rectangle(pos_x, pos_y, SQUARE_SIZE, SQUARE_SIZE, BLACK)} 
+            draw_text(&format!("{}", piece), pos_x + 30.0, pos_y + 60.0, 50.0, RED);
 
             is_white = !is_white;
         }
