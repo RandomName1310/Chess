@@ -13,12 +13,12 @@ type Board = [[char; 8]; 8];
 
 #[derive(Copy, Clone)]
 enum PieceType {
-    Pawn,
-    Rook,
-    Knight,
-    Bishop,
-    Queen,
-    King,
+    Pawn(Moveset),
+    Rook(Moveset),
+    Knight(Moveset),
+    Bishop(Moveset),
+    Queen(Moveset),
+    King(Moveset),
     Empty,
 }
 
@@ -30,10 +30,10 @@ enum Color {
 
 #[derive(Copy, Clone)]
 struct Piece {
+    x: usize, 
+    y: usize,
     piece_type: PieceType,
-    color: Color,
-    moves_move: &'static [Offset],
-    moves_capture: &'static [Offset],
+    color: Color, 
 }
 
 fn get_board_offset() -> (f32, f32){
@@ -43,6 +43,46 @@ fn get_board_offset() -> (f32, f32){
     let y_offset = (screen_height() - board_px) / 2.0;
 
     (x_offset, y_offset)
+}
+
+fn color_pieces_path(piece: Piece, board: &mut Board){
+    // unwrap moveset
+    let path: Moveset = match piece.piece_type {
+        PieceType::Pawn(m)   => m,
+        PieceType::Rook(m)   => m,
+        PieceType::Knight(m) => m,
+        PieceType::Bishop(m) => m,
+        PieceType::Queen(m)  => m,
+        PieceType::King(m)   => m,
+        PieceType::Empty     => {
+            println!("Empty piece has no moveset.");
+            return;
+        }
+    };
+
+    for offset in path{
+        let mut pos_x = piece.x as isize;
+        let mut pos_y = piece.y as isize;
+
+        loop {
+            pos_x += offset.dx as isize;
+            pos_y += offset.dy as isize;
+
+            if pos_x < 0 || pos_x >= BOARD_SIZE as isize || pos_y < 0 || pos_y >= BOARD_SIZE as isize {
+                break;
+            }
+
+            board[pos_y as usize][pos_x as usize] = 'R';
+
+            // stop after one step for some pieces
+            match piece.piece_type {
+                PieceType::Bishop(_) |
+                PieceType::Rook(_) |
+                PieceType::Queen(_) => continue,
+                _ => break,
+            }
+        }
+    }
 }
 
 fn get_selected_square() -> (usize, usize){
@@ -77,18 +117,18 @@ fn draw_board(board: &mut Board, pieces: &mut Board){
 }
 
 // select a piece from the board
-fn select_piece(board: &mut Board, pieces: &mut Board) -> (usize, usize, PieceType, Color){
+fn select_piece(board: &mut Board, pieces: &mut Board) -> Piece{
     let (square_x,square_y): (usize, usize) = get_selected_square();
     let piece: char = pieces[square_y][square_x];
 
     let color: Color = if piece.is_uppercase() { Color::Black } else { Color::White };
     let piece_type = match piece.to_ascii_lowercase(){
-        'p' => PieceType::Pawn,
-        'r' => PieceType::Rook,
-        'b' => PieceType::Bishop,
-        'n' => PieceType::Knight,
-        'q' => PieceType::Queen,
-        'k' => PieceType::King,
+        'p' => PieceType::Pawn(if color == Color::Black{PAWN_BLACK_MOVES} else {PAWN_WHITE_MOVES}),
+        'r' => PieceType::Rook(ROOK_MOVES),
+        'b' => PieceType::Bishop(BISHOP_MOVES),
+        'n' => PieceType::Knight(KNIGHT_MOVES),
+        'q' => PieceType::Queen(QUEEN_MOVES),
+        'k' => PieceType::King(KING_MOVES),
         ' ' => PieceType::Empty,
         _   => panic!("unknown symbol {}", piece),
     };
@@ -96,27 +136,36 @@ fn select_piece(board: &mut Board, pieces: &mut Board) -> (usize, usize, PieceTy
     // remove red squares from previous calls
     refresh_board(board);
 
-    // create red square
-    board[square_y][square_x] = 'R';
-    (square_x,square_y, piece_type, color)
+    let piece: Piece = Piece{
+        x: square_x,
+        y: square_y, 
+        piece_type: piece_type, 
+        color: color
+    };
+
+    // create red squares
+    color_pieces_path(piece, board);
+
+    // return the piece struct that was selected
+    piece
 }
 
 // move a piece from the board
-fn move_piece(board: &mut Board, pieces: &mut Board, last_piece_data: (usize, usize, PieceType, Color)){
+fn move_piece(board: &mut Board, pieces: &mut Board, last_piece_data: Piece){
     let (square_x,square_y): (usize, usize) = get_selected_square();
-    let (piece_x, piece_y, piece_type, color): (usize, usize, PieceType, Color) = last_piece_data;
+    let Piece{x: piece_x, y: piece_y, piece_type, color}: Piece = last_piece_data;
 
     // remove red squares from previous calls
     refresh_board(board);
 
     pieces[piece_y][piece_x] = ' ';
     pieces[square_y][square_x] = match piece_type{
-        PieceType::Pawn =>  if color == Color::Black{'P'}else{'p'},
-        PieceType::Bishop =>  if color == Color::Black{'B'}else{'b'},
-        PieceType::Knight =>  if color == Color::Black{'N'}else{'n'},
-        PieceType::Rook =>  if color == Color::Black{'R'}else{'r'},
-        PieceType::Queen =>  if color == Color::Black{'Q'}else{'q'},
-        PieceType::King =>  if color == Color::Black{'K'}else{'k'},
+        PieceType::Pawn(_) => if color == Color::Black{'P'}else{'p'},
+        PieceType::Bishop(_) => if color == Color::Black{'B'}else{'b'},
+        PieceType::Knight(_) => if color == Color::Black{'N'}else{'n'},
+        PieceType::Rook(_) => if color == Color::Black{'R'}else{'r'},
+        PieceType::Queen(_) => if color == Color::Black{'Q'}else{'q'},
+        PieceType::King(_) => if color == Color::Black{'K'}else{'k'},
         PieceType::Empty =>  ' ',
     }
 }
@@ -126,7 +175,7 @@ async fn main(){
     let mut board: Board = BOARD_LAYOUT;
     let mut pieces: Board = PIECE_LAYOUT;
 
-    let mut selected_piece_data: (usize, usize, PieceType, Color) = (0, 0, PieceType::Empty, Color::White);
+    let mut selected_piece_data: Piece = { Piece{x: 0, y: 0, piece_type: PieceType::Empty, color: Color::White} };
     let mut is_selecting_piece: bool = true;
 
     loop {

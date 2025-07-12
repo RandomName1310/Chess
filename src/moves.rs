@@ -1,24 +1,34 @@
 // move logic
+pub type Moveset = &'static[Offset];
+
 // offset moves 
 pub struct Offset {
-    dx: i8,
-    dy: i8,
+    pub dx: i8,
+    pub dy: i8,
 }
 
 // pawn moves
-pub const PAWN_MOVES: &[Offset] = &[Offset { dx: 0, dy: 1 }];
-pub const PAWN_CAPTURES: &[Offset] = &[Offset { dx: 1, dy: 1 }, Offset { dx: -1, dy: 1 }];
+pub const PAWN_WHITE_MOVES: Moveset = &[Offset { dx: 0, dy: -1 }];
+pub const PAWN_BLACK_MOVES: Moveset = &[Offset { dx: 0, dy: 1 }];
+pub const PAWN_CAPTURES: Moveset = &[Offset { dx: 1, dy: 1 }, Offset { dx: -1, dy: 1 }];
 
 // bishop moves
-pub const BISHOP_MOVES: &[Offset] = &[
+pub const BISHOP_MOVES: Moveset= &[
     Offset { dx: 1, dy: 1 },
     Offset { dx: 1, dy: -1 },
     Offset { dx: -1, dy: 1 },
     Offset { dx: -1, dy: -1 },
 ];
 
+pub const ROOK_MOVES: Moveset= &[
+    Offset { dx: 1, dy: 0 },
+    Offset { dx: -1, dy: 0 },
+    Offset { dx: 0, dy: 1 },
+    Offset { dx: 0, dy: -1 },
+];
+
 // Knight moves
-pub const KNIGHT_MOVES: &[Offset] = &[
+pub const KNIGHT_MOVES: Moveset = &[
     Offset { dx: 1, dy: 2 },
     Offset { dx: 2, dy: 1 },
     Offset { dx: -1, dy: 2 },
@@ -42,7 +52,7 @@ pub const KING_MOVES: &[Offset] = &[
 ];
 
 // queen move
-pub const QUEEN_MOVES: &[Offset] = &[
+pub const QUEEN_MOVES: Moveset = &[
     // straight
     Offset { dx: 1, dy: 0 },
     Offset { dx: -1, dy: 0 },
