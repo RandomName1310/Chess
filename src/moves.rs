@@ -12,7 +12,8 @@ pub struct Offset {
 // pawn moves
 pub const PAWN_WHITE_MOVES: Moveset = &[Offset { dx: 0, dy: -1, repeats: 1}];
 pub const PAWN_BLACK_MOVES: Moveset = &[Offset { dx: 0, dy: 1, repeats: 1}];
-pub const PAWN_CAPTURES: Moveset = &[Offset { dx: 1, dy: 1, repeats: 1}, Offset { dx: -1, dy: 1, repeats: 1}];
+pub const PAWN_WHITE_CAPTURES: Moveset = &[Offset { dx: 1, dy: -1, repeats: 1}, Offset { dx: -1, dy: -1, repeats: 1}];
+pub const PAWN_BLACK_CAPTURES: Moveset = &[Offset { dx: 1, dy: 1, repeats: 1}, Offset { dx: -1, dy: 1, repeats: 1}];
 
 // bishop moves
 pub const BISHOP_MOVES: Moveset= &[
