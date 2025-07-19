@@ -1,28 +1,28 @@
+use crate::board::*;
 use std::{
-    io::{BufReader, prelude::*},
+    io::Write,
     net::{TcpListener, TcpStream},
 };
+use serde_json;
 
 pub fn listen_for_requests() {
-    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
-    println!("listening");
+    let listener = TcpListener::bind("127.0.0.1:7878").expect("Failed to bind to port");
+    println!("Server listening on port 7878");
 
-    for stream in listener.incoming() {
-        let stream = stream.unwrap();
+    if let Ok((stream, addr)) = listener.accept() {
+        println!("Connection established with: {}", addr);
         handle_connection(stream);
     }
+    
 }
 
 fn handle_connection(mut stream: TcpStream) {
-    println!("connection!!");
-    let buf_reader = BufReader::new(&stream);
-    let http_request: Vec<_> = buf_reader
-        .lines()
-        .map(|result| result.unwrap())
-        .take_while(|line| !line.is_empty())
-        .collect();
+    let response = serde_json::to_string(&BOARD_LAYOUT).unwrap();
 
-    let status_line = "HTTP/1.1 200 OK";
-    stream.write_all(status_line.as_bytes()).unwrap();
-    println!("response sent");
+    loop{
+        // send JSON
+        if stream.write_all(response.as_bytes()).is_err() {
+            eprintln!("Failed to send board data");
+        }
+    }
 }

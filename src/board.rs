@@ -1,3 +1,4 @@
+use serde::{Serialize, Deserialize};
 use crate::moves::*;
 
 pub const BOARD_SIZE: usize = 8;
@@ -28,7 +29,7 @@ pub struct Piece {
     pub color: PieceColor, 
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Square {
     pub color: char, 
     pub piece: char, 

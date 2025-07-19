@@ -1,4 +1,5 @@
 use std::thread;
+use std::sync::{Arc, Mutex};
 
 mod moves;
 use moves::*;
@@ -7,9 +8,12 @@ mod board;
 use board::*;
 
 mod server;
+mod client;
 
 use macroquad::prelude::*;
 use egui_macroquad::egui;
+use std::net::TcpStream;
+
 
 fn get_board_offset() -> (f32, f32){
     // calculate position based on screen size
@@ -120,7 +124,18 @@ fn move_piece(board: &mut Board, last_piece_data: Piece){
     refresh_board_color(board);
 }
 
-fn init_ui(){
+fn handle_client(board: Arc<Mutex<Board>>, mut stream: TcpStream) {
+    loop {
+        if let Some(new_board) = client::handle_connection(&mut stream) {
+            let mut board_locked = board.lock().unwrap();
+            *board_locked = new_board;
+        }
+    }
+}
+
+
+
+fn init_ui(board: Arc<Mutex<Board>>, server_stream: &mut Option<TcpStream>) {
     // set all ui
     egui_macroquad::ui(|egui_ctx| {
         egui::Window::new("Controls").show(egui_ctx, |ui| {
@@ -130,27 +145,46 @@ fn init_ui(){
                     server::listen_for_requests();
                 });
             }
+
+            if ui.button("Join Server").clicked() {
+                // hears for connections from the server
+                *server_stream = client::connect();
+
+                // start updating board if connected
+                if let Some(stream) = server_stream.as_ref() {
+                    let cloned_stream = stream.try_clone().expect("Failed to clone stream");
+
+                    let cloned_board = Arc::clone(&board);
+                    thread::spawn(move || {
+                        handle_client(cloned_board, cloned_stream);
+                    });
+                }
+            }
         });
     });
 }
 
 #[macroquad::main("CHESS")]
 async fn main(){
-    let mut board: Board = BOARD_LAYOUT;
+    let mut server_stream: Option<TcpStream> = None;
+
+    let board = Arc::new(Mutex::new(BOARD_LAYOUT));
     let mut selected_piece: Piece = {Piece{x: 0, y: 0, piece_type: PieceType::Empty, color: PieceColor::White}};
 
     loop {
         clear_background(GRAY);
-        init_ui();
+        init_ui(Arc::clone(&board), &mut server_stream);
+
+        let mut board_locked = board.lock().unwrap();
 
         // select or move piece
         if is_mouse_button_pressed(MouseButton::Left){
             let (square_x, square_y) = get_selected_square();
 
-            if board[square_y][square_x].color == 'R' {move_piece(&mut board, selected_piece);}
-            else{selected_piece = select_piece(&mut board);}
+            if board_locked[square_y][square_x].color == 'R' {move_piece(&mut board_locked, selected_piece);}
+            else{selected_piece = select_piece(&mut board_locked);}
         }
-        draw_board(&mut board);
+        draw_board(&mut board_locked);
 
         egui_macroquad::draw(); 
         next_frame().await;
