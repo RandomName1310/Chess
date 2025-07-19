@@ -1,10 +1,15 @@
+use std::thread;
+
 mod moves;
 use moves::*;
 
 mod board;
 use board::*;
 
+mod server;
+
 use macroquad::prelude::*;
+use egui_macroquad::egui;
 
 fn get_board_offset() -> (f32, f32){
     // calculate position based on screen size
@@ -115,14 +120,28 @@ fn move_piece(board: &mut Board, last_piece_data: Piece){
     refresh_board_color(board);
 }
 
+fn init_ui(){
+    // set all ui
+    egui_macroquad::ui(|egui_ctx| {
+        egui::Window::new("Controls").show(egui_ctx, |ui| {
+            if ui.button("Create Server").clicked() {
+                // hears for connections from the server
+                thread::spawn(|| {
+                    server::listen_for_requests();
+                });
+            }
+        });
+    });
+}
+
 #[macroquad::main("CHESS")]
 async fn main(){
     let mut board: Board = BOARD_LAYOUT;
-
     let mut selected_piece: Piece = {Piece{x: 0, y: 0, piece_type: PieceType::Empty, color: PieceColor::White}};
 
     loop {
         clear_background(GRAY);
+        init_ui();
 
         // select or move piece
         if is_mouse_button_pressed(MouseButton::Left){
@@ -132,6 +151,8 @@ async fn main(){
             else{selected_piece = select_piece(&mut board);}
         }
         draw_board(&mut board);
+
+        egui_macroquad::draw(); 
         next_frame().await;
     }
 }
